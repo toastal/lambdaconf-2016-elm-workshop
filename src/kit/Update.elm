@@ -2,6 +2,7 @@ module Update exposing (update)
 
 import Model exposing (Model, LineItem, Pet)
 import Msg exposing (Msg(..))
+import Components.Dropdown as Dropdown
 
 
 {-
@@ -33,6 +34,23 @@ mapWhen f pet ( pet', volume ) =
 update : Msg -> Model -> Model
 update msg model =
     case msg of
-        -- TODO: Impliment Logic
-        _ ->
+        Add pet ->
+            if List.member pet (List.map fst model.cart) then
+                model
+            else
+                { model | cart = model.cart ++ [ ( pet, 1 ) ] }
+
+        Inc pet ->
+            { model | cart = List.map (mapWhen ((+) 1) pet) model.cart }
+
+        Dec pet ->
+            { model | cart = List.map (mapWhen ((+) -1) pet) model.cart }
+
+        Del pet ->
+            { model | cart = List.filter (\( p, q ) -> p /= pet) model.cart }
+
+        Dropdown msg ->
+            { model | dropdown = Dropdown.update msg model.dropdown }
+
+        NoOp ->
             model

@@ -5,11 +5,14 @@ import Html.Attributes as Attr
 import Html.Events as Events
 
 
-view : msg -> String -> Html.Html msg
-view msg label =
-    Html.button
-        [ Attr.type' "button"
-        , Attr.class "btn btn-primary"
-        , Events.onClick msg
-        ]
-        [ Html.text label ]
+view : msg -> List (Html.Attribute msg) -> String -> Html.Html msg
+view msg attrs label =
+    let
+        attrs' =
+            [ Attr.type' "button"
+            , Attr.class "btn btn-primary"
+            , Events.onClick msg
+            ]
+                ++ attrs
+    in
+        Html.button attrs' [ Html.text label ]

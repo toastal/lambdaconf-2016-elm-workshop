@@ -1,5 +1,8 @@
 module Model exposing (..)
 
+import Components.Dropdown as Dropdown
+
+
 {-
 
    This is a union type representing the
@@ -12,9 +15,10 @@ type Pet
     = Furby
     | Dragon
     | GelatinousBlob
-    -- TODO: Add more interesting Pets
 
-    
+
+
+-- TODO: Add more interesting Pets
 {-
 
    These are type aliases. In this case
@@ -56,7 +60,8 @@ type alias LineItem =
 type alias Model =
     { cart :
         List LineItem
-        -- TODO: Wire Dropdown Component into Model
+    , dropdown :
+        Dropdown.Model Pet
     }
 
 
@@ -70,7 +75,16 @@ type alias Model =
 
 init : Model
 init =
-    { cart = [] }
+    { cart = []
+    , dropdown =
+        Dropdown.init displayPet
+            "Choose Your Pet"
+            Nothing
+            [ Furby
+            , Dragon
+            , GelatinousBlob
+            ]
+    }
 
 
 displayPet : Pet -> String

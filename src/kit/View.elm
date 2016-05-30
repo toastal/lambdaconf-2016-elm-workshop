@@ -3,9 +3,11 @@ module View exposing (view)
 import Msg exposing (Msg(..))
 import Model exposing (Model, Pet(..), LineItem)
 import Html exposing (..)
-import Html.Attributes as Attr
+import Html.App as Html
+import Html.Attributes as Attr exposing (disabled)
 import Components.IconButton as IconButton
 import Components.Button as Button
+import Components.Dropdown as Dropdown
 import Components.Css as Css
 import DisplayHelpers exposing (displayAsDollars)
 
@@ -44,20 +46,14 @@ header =
         ]
 
 
-add : Model -> Html Msg
-add model =
-    Button.view (Add Furby) "Add"
-
-
 quantityControl : Pet -> Html Msg
 quantityControl pet =
     div
         [ Attr.class "btn-group btn-group-sm"
         , Attr.style [ ( "margin-left", "1rem" ) ]
         ]
-        -- TODO: Wire up increment and decrement functionality
-        [ IconButton.view "minus" NoOp
-        , IconButton.view "plus" NoOp
+        [ IconButton.view "minus" (Dec pet)
+        , IconButton.view "plus" (Inc pet)
         ]
 
 
@@ -78,7 +74,7 @@ lineItem ( pet, quantity ) =
             , quantityControl pet
             ]
         , td [ textAlign "right" ]
-            [ IconButton.view "times" NoOp ]
+            [ IconButton.view "times" (Del pet) ]
         ]
 
 
@@ -100,9 +96,10 @@ cart model =
             tbody []
                 <| case List.map lineItem model.cart of
                     [] ->
-                      [ emptyCart ]
+                        [ emptyCart ]
 
-                    x -> x
+                    x ->
+                        x
 
         head' =
             thead []
@@ -128,8 +125,12 @@ cart model =
 total : Model -> Html Msg
 total model =
     let
-        -- TODO: Calculate total
-        total' = 0.0
+        addTotal ( p, q ) acc =
+            acc + ((Model.price p) * (toFloat q))
+
+        total' =
+            model.cart
+                |> List.foldl addTotal 0.0
     in
         wrap
             [ h4 [ Attr.style [ ( "text-align", "right" ) ] ]
@@ -139,12 +140,17 @@ total model =
 
 background : Html Msg -> Html Msg
 background app =
-  div [ Attr.style [ ("background", "url('http://i.imgur.com/f9wAIL7.png') no-repeat bottom center fixed" )
-                   , ("width", "100%")
-                   , ("height", "100%")
-                   , ("padding-top", "1rem")] ]
-      [ app
-      ]
+    div
+        [ Attr.style
+            [ ( "background", "url('http://i.imgur.com/f9wAIL7.png') no-repeat bottom center fixed" )
+            , ( "width", "100%" )
+            , ( "height", "100%" )
+            , ( "padding-top", "1rem" )
+            ]
+        ]
+        [ app
+        ]
+
 
 
 {-
@@ -159,16 +165,28 @@ background app =
 -}
 
 
+addButton : Model -> Html Msg
+addButton model =
+    case model.dropdown.selected of
+        Just pet ->
+            Button.view (Add pet) [] "Add"
+
+        Nothing ->
+            Button.view (NoOp) [ disabled True ] "Add"
+
+
 view : Model -> Html Msg
 view model =
-    background <| wrap
-        [ bootstrap
-        , fontAwesome
-        , header
-        , cart model
-        , total model
-        , div [ Attr.class "form-inline form-control" ]
-            [ label [] [ text "Add Pet To Cart" ]
-              -- TODO: Add pet dropdown and "Add" button
+    background
+        <| wrap
+            [ bootstrap
+            , fontAwesome
+            , header
+            , cart model
+            , total model
+            , div [ Attr.class "form-inline form-control" ]
+                [ label [] [ text "Add Pet To Cart" ]
+                , Html.map Dropdown (Dropdown.view model.dropdown)
+                , addButton model
+                ]
             ]
-        ]
